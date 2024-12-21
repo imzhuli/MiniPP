@@ -1,5 +1,4 @@
 #pragma once
-#include "./connection_manager.hpp"
 #include "./device_manager.hpp"
 #include "./relay_service.hpp"
 
@@ -10,6 +9,7 @@ extern xNetAddress BindControlAddress;
 extern xNetAddress BindDataAddress;
 extern xNetAddress BindProxyAddress;
 
-extern xRL_DeviceConnectionManager ConnectionManager;
+extern xRD_DeviceConnectionManager DeviceConnectionManager;
 extern xDeviceManager              DeviceManager;
+extern xRD_ProxyConnectionManager  ProxyConnectionManager;
 extern xDeviceRelayService         DeviceRelayService;

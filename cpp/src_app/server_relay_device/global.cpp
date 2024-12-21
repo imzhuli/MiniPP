@@ -5,6 +5,7 @@ xNetAddress BindControlAddress;
 xNetAddress BindDataAddress;
 xNetAddress BindProxyAddress;
 
-xRL_DeviceConnectionManager ConnectionManager;
+xRD_DeviceConnectionManager DeviceConnectionManager;
 xDeviceManager              DeviceManager;
+xRD_ProxyConnectionManager  ProxyConnectionManager;
 xDeviceRelayService         DeviceRelayService;

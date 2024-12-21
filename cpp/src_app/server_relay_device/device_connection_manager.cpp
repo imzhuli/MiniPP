@@ -1,38 +1,28 @@
-#include "./connection_manager.hpp"
-
-/***************
- * Connection
- */
-bool xConnection::PostPacket(xPacketCommandId CmdId, xPacketRequestId RequestId, xBinaryMessage & Message) {
-    ubyte Buffer[MaxPacketSize];
-    auto  PSize = WritePacket(CmdId, RequestId, Buffer, Message);
-    PostData(Buffer, PSize);
-    return true;
-}
+#include "./device_connection_manager.hpp"
 
 /***************
  * Connection manager
  */
 
-bool xRL_DeviceConnectionManager::Init(xIoContext * ICP, size32_t MaxConnections) {
+bool xRD_DeviceConnectionManager::Init(xIoContext * ICP, size32_t MaxRD_DeviceConnections) {
     RuntimeAssert(this->ICP = ICP);
-    RuntimeAssert(ConnectionIdManager.Init(MaxConnections));
+    RuntimeAssert(ConnectionIdManager.Init(MaxRD_DeviceConnections));
     return true;
 }
-void xRL_DeviceConnectionManager::Clean() {
+void xRD_DeviceConnectionManager::Clean() {
     FreeAllConnections();
     ConnectionIdManager.Clean();
     this->ICP = nullptr;
 }
 
-void xRL_DeviceConnectionManager::Tick(uint64_t NowMS) {
+void xRD_DeviceConnectionManager::Tick(uint64_t NowMS) {
     Ticker.Update(NowMS);
     RemoveIdleConnections();
 }
 
-void xRL_DeviceConnectionManager::RemoveIdleConnections() {
+void xRD_DeviceConnectionManager::RemoveIdleConnections() {
     auto NewConnectionKillTimepoint = Ticker() - 3'000;
-    while (auto TOC = NewConnectionList.PopHead([NewConnectionKillTimepoint](const xConnection & C) -> bool {
+    while (auto TOC = NewConnectionList.PopHead([NewConnectionKillTimepoint](const xRD_DeviceConnection & C) -> bool {
         return C.IdleTimestamMS <= NewConnectionKillTimepoint;
     })) {
         X_DEBUG_PRINTF("New Connection: %" PRIx64 "", TOC->ConnectionId);
@@ -40,7 +30,7 @@ void xRL_DeviceConnectionManager::RemoveIdleConnections() {
     }
 
     auto KillTimepoint = Ticker() - IdleTimeoutMS;
-    while (auto TOC = IdleConnectionList.PopHead([KillTimepoint](const xConnection & C) -> bool { return C.IdleTimestamMS <= KillTimepoint; })) {
+    while (auto TOC = IdleConnectionList.PopHead([KillTimepoint](const xRD_DeviceConnection & C) -> bool { return C.IdleTimestamMS <= KillTimepoint; })) {
         KillConnectionList.GrabTail(*TOC);
     }
 
@@ -49,7 +39,7 @@ void xRL_DeviceConnectionManager::RemoveIdleConnections() {
     }
 }
 
-xConnection * xRL_DeviceConnectionManager::AcceptConnection(xSocket && NativeHandle, xTcpConnection::iListener * Listener) {
+xRD_DeviceConnection * xRD_DeviceConnectionManager::AcceptConnection(xSocket && NativeHandle, xTcpConnection::iListener * Listener) {
     auto C = CreateConnection();
     if (!C->Init(ICP, std::move(NativeHandle), Listener)) {
         X_DEBUG_PRINTF("Failed to accept connection");
@@ -59,8 +49,8 @@ xConnection * xRL_DeviceConnectionManager::AcceptConnection(xSocket && NativeHan
     return C;
 }
 
-xConnection * xRL_DeviceConnectionManager::CreateConnection() {
-    auto C = new (std::nothrow) xConnection();
+xRD_DeviceConnection * xRD_DeviceConnectionManager::CreateConnection() {
+    auto C = new (std::nothrow) xRD_DeviceConnection();
     if (!C) {
         return nullptr;
     }
@@ -75,20 +65,20 @@ xConnection * xRL_DeviceConnectionManager::CreateConnection() {
     return C;
 }
 
-void xRL_DeviceConnectionManager::DeferReleaseConnection(xConnection * Conn) {
-    Conn->Marks |= xConnection::MARK_DELETE;
+void xRD_DeviceConnectionManager::DeferReleaseConnection(xRD_DeviceConnection * Conn) {
+    Conn->Marks |= xRD_DeviceConnection::MARK_DELETE;
     KillConnectionList.GrabTail(*Conn);
 }
 
-void xRL_DeviceConnectionManager::KeepAlive(xConnection * Conn) {
-    if (Conn->Marks & xConnection::MARK_DELETE) {
+void xRD_DeviceConnectionManager::KeepAlive(xRD_DeviceConnection * Conn) {
+    if (Conn->Marks & xRD_DeviceConnection::MARK_DELETE) {
         return;
     }
     Conn->IdleTimestamMS = Ticker;
     IdleConnectionList.GrabTail(*Conn);
 }
 
-void xRL_DeviceConnectionManager::DestroyConnection(xConnection * Conn) {
+void xRD_DeviceConnectionManager::DestroyConnection(xRD_DeviceConnection * Conn) {
     assert(Conn->ConnectionId);
     X_DEBUG_PRINTF("DestroyConnection: %" PRIx64 "", Conn->ConnectionId);
     RuntimeAssert(ConnectionIdManager.CheckAndRelease(Conn->ConnectionId));
@@ -96,7 +86,7 @@ void xRL_DeviceConnectionManager::DestroyConnection(xConnection * Conn) {
     delete Conn;
 }
 
-void xRL_DeviceConnectionManager::FreeAllConnections() {
+void xRD_DeviceConnectionManager::FreeAllConnections() {
     KillConnectionList.GrabListTail(NewConnectionList);
     KillConnectionList.GrabListTail(IdleConnectionList);
     while (auto PC = KillConnectionList.PopHead()) {
