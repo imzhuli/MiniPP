@@ -24,6 +24,7 @@ int main(int argc, char ** argv) {
     RuntimeAssert(DeviceManager.Init(MaxDeviceCount));
     RuntimeAssert(DeviceConnectionManager.Init(&GlobalIoContext, MaxDeviceCount * 2));
     RuntimeAssert(DeviceRelayService.Init(&GlobalIoContext, BindControlAddress, BindDataAddress, BindProxyAddress));
+    RuntimeAssert(ProxyConnectionManager.Init(&GlobalIoContext, MaxProxyCount));
 
     while (true) {
         auto NowMS = GetTimestampMS();

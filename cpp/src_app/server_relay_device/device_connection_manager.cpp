@@ -7,8 +7,10 @@
 bool xRD_DeviceConnectionManager::Init(xIoContext * ICP, size32_t MaxRD_DeviceConnections) {
     RuntimeAssert(this->ICP = ICP);
     RuntimeAssert(ConnectionIdManager.Init(MaxRD_DeviceConnections));
+    Ticker.Update();
     return true;
 }
+
 void xRD_DeviceConnectionManager::Clean() {
     FreeAllConnections();
     ConnectionIdManager.Clean();
@@ -66,12 +68,15 @@ xRD_DeviceConnection * xRD_DeviceConnectionManager::CreateConnection() {
 }
 
 void xRD_DeviceConnectionManager::DeferReleaseConnection(xRD_DeviceConnection * Conn) {
-    Conn->Marks |= xRD_DeviceConnection::MARK_DELETE;
+    if (Conn->HasMark_Delete()) {
+        return;
+    }
+    Conn->Mark_Delete();
     KillConnectionList.GrabTail(*Conn);
 }
 
 void xRD_DeviceConnectionManager::KeepAlive(xRD_DeviceConnection * Conn) {
-    if (Conn->Marks & xRD_DeviceConnection::MARK_DELETE) {
+    if (Conn->HasMark_Delete()) {
         return;
     }
     Conn->IdleTimestamMS = Ticker;

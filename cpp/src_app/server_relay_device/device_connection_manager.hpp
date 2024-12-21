@@ -6,11 +6,7 @@ class xRD_DeviceConnection
     , public xListNode {
 
 public:
-    static constexpr const uint64_t MARK_DELETE = 0x8F;
-
-    uint64_t IdleTimestamMS = 0;
-    uint64_t Marks          = 0;
-    uint64_t DeviceId       = 0;
+    uint64_t DeviceId = 0;
     //
 };
 
