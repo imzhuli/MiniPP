@@ -11,12 +11,19 @@ bool xRelayConnectionManager::Init(xIoContext * ICP) {
 }
 
 void xRelayConnectionManager::Clean() {
-    Todo("Close all connections");
+    KillConnectionList.GrabListTail(KeepAliveList);
+    while (auto PC = static_cast<xPA_RelayConnection *>(KillConnectionList.PopHead())) {
+        DestroyConnection(PC);
+    }
 }
 
 void xRelayConnectionManager::Tick() {
     Ticker.Update();
     Todo("do keepalive, and close idle connections");
+
+    while (auto PC = static_cast<xPA_RelayConnection *>(KillConnectionList.PopHead())) {
+        DestroyConnection(PC);
+    }
 }
 
 xPA_RelayConnection * xRelayConnectionManager::GetRelayConnectionById(uint32_t LocalConnectionId) {
@@ -51,6 +58,11 @@ xPA_RelayConnection * xRelayConnectionManager::AcquireRelayConnection(const xNet
     return nullptr;
 }
 
+void xRelayConnectionManager::DeferKillConnection(xPA_RelayConnection * PC) {
+    PC->MarkDeleted = true;
+    KillConnectionList.GrabTail(*PC);
+}
+
 xPA_RelayConnection * xRelayConnectionManager::CreateConnection(const xNetAddress & TargetAddress) {
     auto CID = ConnectionIdManager.Acquire();
     if (!CID) {
@@ -75,10 +87,31 @@ xPA_RelayConnection * xRelayConnectionManager::CreateConnection(const xNetAddres
     }
 
     PC->LocalConnectionId = CID;
+    KeepAlive(PC);
     return PC;
 }
 
 void xRelayConnectionManager::DestroyConnection(xPA_RelayConnection * PC) {
     PC->Clean();
     delete PC;
+}
+
+void xRelayConnectionManager::KeepAlive(xPA_RelayConnection * PC) {
+    if (!PC->MarkDeleted) {
+        return;
+    }
+    PC->KeepAliveTimestampMS = Ticker;
+    KeepAliveList.GrabTail(*PC);
+}
+
+void xRelayConnectionManager::OnConnected(xTcpConnection * TcpConnectionPtr) {
+    TcpConnectionPtr->PostRequestKeepAlive();
+}
+
+void xRelayConnectionManager::OnPeerClose(xTcpConnection * TcpConnectionPtr) {
+    DeferKillConnection(static_cast<xPA_RelayConnection *>(TcpConnectionPtr));
+}
+
+size_t xRelayConnectionManager::OnData(xTcpConnection * TcpConnectionPtr, ubyte * DataPtr, size_t DataSize) {
+    return DataSize;
 }

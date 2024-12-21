@@ -14,4 +14,5 @@ struct xPA_RelayConnection
     xNetAddress RelayServerAddress;
 
     //
+    bool MarkDeleted;
 };

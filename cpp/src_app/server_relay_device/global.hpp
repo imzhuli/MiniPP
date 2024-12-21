@@ -10,6 +10,6 @@ extern xNetAddress BindControlAddress;
 extern xNetAddress BindDataAddress;
 extern xNetAddress BindProxyAddress;
 
-extern xConnectionManager  ConnectionManager;
-extern xDeviceManager      DeviceManager;
-extern xDeviceRelayService DeviceRelayService;
+extern xRL_DeviceConnectionManager ConnectionManager;
+extern xDeviceManager              DeviceManager;
+extern xDeviceRelayService         DeviceRelayService;
