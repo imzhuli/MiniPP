@@ -66,6 +66,7 @@ void xDeviceRelayService::OnPeerClose(xTcpConnection * TcpConnectionPtr) {
     } else if (Conn->IsType_Data()) {
         auto DC = static_cast<xRD_DeviceConnection *>(Conn);
         DeviceConnectionManager.DeferReleaseConnection(DC);
+        return;
     }
     assert(Conn->IsType_ProxyClient());
     auto PC = static_cast<xRD_ProxyConnection *>(Conn);
