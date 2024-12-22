@@ -33,7 +33,14 @@ public:
     xRD_ProxyConnection * AcceptConnection(xSocket && NativeHandle, xTcpConnection::iListener * Listener);
     void                  DeferReleaseConnection(xRD_ProxyConnection * Conn);
     void                  KeepAlive(xRD_ProxyConnection * Conn);
-    //
+
+    xRD_ProxyConnection * GetConnectionById(uint64_t ConnectionId) {
+        auto PR = ConnectionIdManager.CheckAndGet(ConnectionId);
+        if (!PR) {
+            return nullptr;
+        }
+        return *PR;
+    }
 
 private:
     xRD_ProxyConnection * CreateConnection(xSocket && NativeHandle, xTcpConnection::iListener * Listener);

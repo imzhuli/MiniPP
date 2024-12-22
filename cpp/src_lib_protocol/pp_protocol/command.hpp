@@ -65,14 +65,14 @@ static constexpr const xPacketCommandId Cmd_GetBackendServerListResp = Cmd_Serve
 // clang-formt on
 
 // proxyaccess-relay:
-static constexpr const xPacketCommandId Cmd_PA_RL_Base                 = 0x06'000;
-static constexpr const xPacketCommandId Cmd_PA_RL_Challenge            = Cmd_PA_RL_Base + 0x01;
-static constexpr const xPacketCommandId Cmd_PA_RL_ChallengeResp        = Cmd_PA_RL_Base + 0x02;
-static constexpr const xPacketCommandId Cmd_PA_RL_CreateConnection     = Cmd_PA_RL_Base + 0x03;
-static constexpr const xPacketCommandId Cmd_PA_RL_CreateConnectionResp = Cmd_PA_RL_Base + 0x04;
-static constexpr const xPacketCommandId Cmd_PA_RL_PostData             = Cmd_PA_RL_Base + 0x05;
-static constexpr const xPacketCommandId Cmd_PA_RL_DestroyConnection    = Cmd_PA_RL_Base + 0x06;
-static constexpr const xPacketCommandId Cmd_PA_RL_ProxyClientNotify    = Cmd_PA_RL_Base + 0x07;
+static constexpr const xPacketCommandId Cmd_PA_RL_Base                  = 0x06'000;
+static constexpr const xPacketCommandId Cmd_PA_RL_Challenge             = Cmd_PA_RL_Base + 0x01;
+static constexpr const xPacketCommandId Cmd_PA_RL_ChallengeResp         = Cmd_PA_RL_Base + 0x02;
+static constexpr const xPacketCommandId Cmd_PA_RL_CreateConnection      = Cmd_PA_RL_Base + 0x03;
+static constexpr const xPacketCommandId Cmd_PA_RL_DestroyConnection     = Cmd_PA_RL_Base + 0x04;
+static constexpr const xPacketCommandId Cmd_PA_RL_NotifyConnectionState = Cmd_PA_RL_Base + 0x05;
+static constexpr const xPacketCommandId Cmd_PA_RL_PostData              = Cmd_PA_RL_Base + 0x06;
+static constexpr const xPacketCommandId Cmd_PA_RL_ProxyClientNotify     = Cmd_PA_RL_Base + 0x09;
 
 // terminal-config-center:
 static constexpr const xPacketCommandId Cmd_Terminal_CC_Base          = 0x07'000;

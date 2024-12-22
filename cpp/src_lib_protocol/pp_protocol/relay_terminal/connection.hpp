@@ -18,23 +18,23 @@ public:
 class xTR_DestroyConnection : public xBinaryMessage {
 public:
     void SerializeMembers() override {
-        W(TerminalSideConnectionId, RelaySideConnectionId);
+        W(DeviceSideConnectionId, RelaySideConnectionId);
     }
     void DeserializeMembers() override {
-        R(TerminalSideConnectionId, RelaySideConnectionId);
+        R(DeviceSideConnectionId, RelaySideConnectionId);
     }
 
 public:
-    uint32_t TerminalSideConnectionId;
+    uint32_t DeviceSideConnectionId;
     uint64_t RelaySideConnectionId;
 };
 
 class xTR_ConnectionStateNotify : public xBinaryMessage {
 public:
-    static constexpr int STATE_UNSEPC          = 0;
-    static constexpr int STATE_ESTABLISHED     = 1;
-    static constexpr int STATE_UPDATE_TRANSFER = 2;
-    static constexpr int STATE_CLOSED          = 3;
+    static constexpr uint32_t STATE_UNSEPC          = 0;
+    static constexpr uint32_t STATE_ESTABLISHED     = 1;
+    static constexpr uint32_t STATE_UPDATE_TRANSFER = 2;
+    static constexpr uint32_t STATE_CLOSED          = 3;
 
     static const char * GetStateName(int State) {
         switch (State) {
@@ -54,16 +54,16 @@ public:
 
 public:
     void SerializeMembers() override {
-        W(TerminalSideConnectionId, RelaySideConnectionId);
+        W(DeviceSideConnectionId, RelaySideConnectionId);
         W(NewState, TotalReadBytes, TotalWrittenBytes);
     }
     void DeserializeMembers() override {
-        R(TerminalSideConnectionId, RelaySideConnectionId);
+        R(DeviceSideConnectionId, RelaySideConnectionId);
         R(NewState, TotalReadBytes, TotalWrittenBytes);
     }
 
 public:
-    uint32_t TerminalSideConnectionId;
+    uint32_t DeviceSideConnectionId;
     uint64_t RelaySideConnectionId;
     uint32_t NewState          = 0;
     uint64_t TotalReadBytes    = 0;

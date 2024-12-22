@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <pp_protocol/command.hpp>
 #include <pp_protocol/proxy_relay/challenge.hpp>
+#include <pp_protocol/proxy_relay/connection.hpp>
 #include <pp_protocol/relay_terminal/connection.hpp>
 #include <pp_protocol/relay_terminal/init_ctrl_stream.hpp>
 #include <pp_protocol/relay_terminal/init_data_stream.hpp>
@@ -71,8 +72,41 @@ bool xDeviceRelayService::OnTerminalTargetConnectionUpdate(xRD_DeviceConnection 
 
     X_DEBUG_PRINTF(
         "New ConnectionState: %s terminalSideCid=%" PRIx32 ", relaySideCid=%" PRIx64 ", tR=%" PRIu64 ", tW=%" PRIu64 "",
-        xTR_ConnectionStateNotify::GetStateName(S.NewState), S.TerminalSideConnectionId, S.RelaySideConnectionId, S.TotalReadBytes, S.TotalWrittenBytes
+        xTR_ConnectionStateNotify::GetStateName(S.NewState), S.DeviceSideConnectionId, S.RelaySideConnectionId, S.TotalReadBytes, S.TotalWrittenBytes
     );
 
+    auto CR = RelayConnectionManager.Get(S.RelaySideConnectionId);
+    if (!CR || CR->RelaySideConnectionId != S.RelaySideConnectionId) {
+        X_DEBUG_PRINTF("Connection not found: Id=%" PRIx64 "", S.RelaySideConnectionId);
+        return true;
+    }
+
+    auto F = xPR_ConnectionStateNotify();
+    switch (S.NewState) {
+        case xTR_ConnectionStateNotify::STATE_ESTABLISHED:
+            CR->DeviceSideConnectionId = S.DeviceSideConnectionId;
+
+            F.NewState = xPR_ConnectionStateNotify::STATE_ESTABLISHED;
+            break;
+        case xTR_ConnectionStateNotify::STATE_UPDATE_TRANSFER:
+            F.NewState = xPR_ConnectionStateNotify::STATE_UPDATE_TRANSFER;
+            break;
+        case xTR_ConnectionStateNotify::STATE_CLOSED:
+            F.NewState = xPR_ConnectionStateNotify::STATE_CLOSED;
+            break;
+        default:
+            X_DEBUG_PRINTF("Unrecognized state");
+            return false;
+    }
+    F.RelaySideConnectionId = CR->RelaySideConnectionId;
+    F.ProxySideConnectionId = CR->ProxySideConnectionId;
+
+    auto PAConn = ProxyConnectionManager.GetConnectionById(CR->ProxyId);
+    if (!PAConn) {
+        X_DEBUG_PRINTF("proxy not found");
+        // TODO 删除此连接
+        return true;
+    }
+    PAConn->PostPacket(Cmd_PA_RL_NotifyConnectionState, 0, F);
     return true;
 }

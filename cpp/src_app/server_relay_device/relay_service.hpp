@@ -28,11 +28,12 @@ public:
 
     bool OnProxyChallenge(xRD_ProxyConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize);
     bool OnProxyCreateConnection(xRD_ProxyConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize);
+    bool OnProxyPushData(xRD_ProxyConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize);
 
 protected:
     void RemoveDeviceFromConnection(xRD_DeviceConnection * Conn);
     void RemoveDevice(xDevice * Device);  // TODO
-    bool PostConnectionData(xDevice * Device, uint32_t TerminalSideConnectionId, uint64_t LocalConnectionId, const ubyte * PayloadPtr, size_t PayloadSize);
+    bool PostConnectionData(xDevice * Device, uint32_t DeviceSideConnectionId, uint64_t LocalConnectionId, const ubyte * PayloadPtr, size_t PayloadSize);
 
     bool OnDataPacket(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize);
     bool OnCtrlPacket(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize);

@@ -15,6 +15,8 @@ bool xDeviceRelayService::OnProxyPacket(xRD_ProxyConnection * Conn, xPacketHeade
             return OnProxyChallenge(Conn, Header, Payload, PayloadSize);
         case Cmd_PA_RL_CreateConnection:
             return OnProxyCreateConnection(Conn, Header, Payload, PayloadSize);
+        case Cmd_PA_RL_PostData:
+            return OnProxyPushData(Conn, Header, Payload, PayloadSize);
         default:
             X_DEBUG_PRINTF("unrecognized protocol %" PRIx32 "", Header.CommandId);
             break;
@@ -53,10 +55,37 @@ bool xDeviceRelayService::OnProxyCreateConnection(xRD_ProxyConnection * Conn, xP
     }
     assert(D->CtrlConnection);
 
+    auto RCC = RelayConnectionManager.Create();
+    if (!RCC) {
+        auto F                  = xPR_ConnectionStateNotify();
+        F.NewState              = xPR_ConnectionStateNotify::STATE_CLOSED;
+        F.ProxySideConnectionId = R.ProxySideConnectionId;
+        Conn->PostPacket(Cmd_PA_RL_NotifyConnectionState, 0, F);
+        return true;
+    }
+
+    RCC->DeviceId              = D->DeviceRuntimeId;
+    RCC->ProxyId               = Conn->ConnectionId;
+    RCC->ProxySideConnectionId = R.ProxySideConnectionId;
+
     auto CC                  = xTR_CreateConnection();
-    CC.RelaySideConnectionId = 12345;
+    CC.RelaySideConnectionId = RCC->RelaySideConnectionId;
     CC.TargetAddress         = R.TargetAddress;
     D->CtrlConnection->PostPacket(Cmd_Terminal_RL_CreateConnection, 0, CC);
+
+    return true;
+}
+
+bool xDeviceRelayService::OnProxyPushData(xRD_ProxyConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
+    auto R = xPR_PushData();
+    if (!R.Deserialize(Payload, PayloadSize)) {
+        X_DEBUG_PRINTF("invalid protocol");
+        return false;
+    }
+    X_DEBUG_PRINTF(
+        "RelaySideConnectionId=%" PRIx64 ", ProxySideConnectionId=%" PRIx64 ", Data=\n%s", R.RelaySideConnectionId, R.ProxySideConnectionId,
+        HexShow(R.DataView).c_str()
+    );
 
     return true;
 }

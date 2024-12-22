@@ -25,6 +25,7 @@ int main(int argc, char ** argv) {
     RuntimeAssert(DeviceConnectionManager.Init(&GlobalIoContext, MaxDeviceCount * 2));
     RuntimeAssert(DeviceRelayService.Init(&GlobalIoContext, BindControlAddress, BindDataAddress, BindProxyAddress));
     RuntimeAssert(ProxyConnectionManager.Init(&GlobalIoContext, MaxProxyCount));
+    RuntimeAssert(RelayConnectionManager.Init(MaxRelayConnectionCount));
 
     while (true) {
         auto NowMS = GetTimestampMS();
@@ -33,8 +34,11 @@ int main(int argc, char ** argv) {
         DeviceManager.Tick(NowMS);
         DeviceRelayService.Tick(NowMS);
         ProxyConnectionManager.Tick(NowMS);
+        RelayConnectionManager.Tick(NowMS);
     }
 
+    RelayConnectionManager.Clean();
+    ProxyConnectionManager.Clean();
     DeviceRelayService.Clean();
     DeviceConnectionManager.Clean();
     DeviceManager.Clean();

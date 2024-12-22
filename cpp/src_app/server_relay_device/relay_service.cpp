@@ -152,14 +152,14 @@ void xDeviceRelayService::RemoveDevice(xDevice * Device) {
 }
 
 bool xDeviceRelayService::PostConnectionData(
-    xDevice * Device, uint32_t TerminalSideConnectionId, uint64_t LocalConnectionId, const ubyte * PayloadPtr, size_t TotalPayloadSize
+    xDevice * Device, uint32_t DeviceSideConnectionId, uint64_t LocalConnectionId, const ubyte * PayloadPtr, size_t TotalPayloadSize
 ) {
     while (TotalPayloadSize) {
-        auto PayloadSize            = std::min((size32_t)TotalPayloadSize, xTR_PostData::MAX_PAYLOAD_SIZE);
-        auto PP                     = xTR_PostData();
-        PP.TerminalSideConnectionId = TerminalSideConnectionId;
-        PP.RelaySideConnectionId    = LocalConnectionId;
-        PP.PayloadView              = { (const char *)PayloadPtr, PayloadSize };
+        auto PayloadSize          = std::min((size32_t)TotalPayloadSize, xTR_PostData::MAX_PAYLOAD_SIZE);
+        auto PP                   = xTR_PostData();
+        PP.DeviceSideConnectionId = DeviceSideConnectionId;
+        PP.RelaySideConnectionId  = LocalConnectionId;
+        PP.PayloadView            = { (const char *)PayloadPtr, PayloadSize };
 
         PayloadPtr       += PayloadSize;
         TotalPayloadSize -= PayloadSize;
