@@ -26,6 +26,9 @@ public:
     bool OnTerminalInitDataStream(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize);
     bool OnTerminalTargetConnectionUpdate(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize);
 
+    bool OnProxyChallenge(xRD_ProxyConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize);
+    bool OnProxyCreateConnection(xRD_ProxyConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize);
+
 protected:
     void RemoveDeviceFromConnection(xRD_DeviceConnection * Conn);
     void RemoveDevice(xDevice * Device);  // TODO

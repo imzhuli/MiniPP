@@ -100,7 +100,7 @@ void xRelayConnectionManager::KeepAlive(xPA_RelayConnection * PC) {
     if (!PC->MarkDeleted) {
         return;
     }
-    PC->KeepAliveTimestampMS = Ticker;
+    PC->KeepAliveTimestampMS = Ticker();
     KeepAliveList.GrabTail(*PC);
 }
 

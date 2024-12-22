@@ -1,5 +1,5 @@
-#include "./config.hpp"
-#include "./global.hpp"
+#include "./_config.hpp"
+#include "./_global.hpp"
 #include "./relay_service.hpp"
 
 #include <pp_protocol/relay_terminal/init_ctrl_stream.hpp>
@@ -32,6 +32,7 @@ int main(int argc, char ** argv) {
         DeviceConnectionManager.Tick(NowMS);
         DeviceManager.Tick(NowMS);
         DeviceRelayService.Tick(NowMS);
+        ProxyConnectionManager.Tick(NowMS);
     }
 
     DeviceRelayService.Clean();

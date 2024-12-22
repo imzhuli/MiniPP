@@ -1,6 +1,6 @@
-#include "./config.hpp"
+#include "./_config.hpp"
 
-#include "./global.hpp"
+#include "./_global.hpp"
 
 #include <config/config.hpp>
 

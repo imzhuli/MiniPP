@@ -32,7 +32,7 @@ public:
     }
 
 private:
-    xRD_DeviceConnection * CreateConnection();
+    xRD_DeviceConnection * CreateConnection(xSocket && NativeHandle, xTcpConnection::iListener * Listener);
     void                   DestroyConnection(xRD_DeviceConnection * Conn);
     void                   FreeAllConnections();
 
@@ -42,6 +42,7 @@ private:
     uint64_t                                IdleTimeoutMS = 120'000;
     xList<xRD_DeviceConnection>             NewConnectionList;
     xList<xRD_DeviceConnection>             IdleConnectionList;
+    xList<xRD_DeviceConnection>             SlowKillConnectionList;
     xList<xRD_DeviceConnection>             KillConnectionList;
     xIndexedStorage<xRD_DeviceConnection *> ConnectionIdManager;
 };

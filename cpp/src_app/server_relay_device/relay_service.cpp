@@ -1,10 +1,11 @@
 #include "./relay_service.hpp"
 
+#include "./_global.hpp"
 #include "./connection.hpp"
-#include "./global.hpp"
 
 #include <algorithm>
 #include <pp_protocol/command.hpp>
+#include <pp_protocol/proxy_relay/challenge.hpp>
 #include <pp_protocol/relay_terminal/connection.hpp>
 #include <pp_protocol/relay_terminal/init_ctrl_stream.hpp>
 #include <pp_protocol/relay_terminal/init_data_stream.hpp>
@@ -40,16 +41,28 @@ void xDeviceRelayService::OnNewConnection(xTcpServer * TcpServerPtr, xSocket && 
 
 void xDeviceRelayService::OnNewControlConnection(xSocket && NativeHandle) {
     auto Conn = DeviceConnectionManager.AcceptConnection(std::move(NativeHandle), this);
+    if (!Conn) {
+        return;
+    }
     Conn->SetType_Ctrl();
 }
 
 void xDeviceRelayService::OnNewDataConnection(xSocket && NativeHandle) {
     auto Conn = DeviceConnectionManager.AcceptConnection(std::move(NativeHandle), this);
+    if (!Conn) {
+        return;
+    }
     Conn->SetType_Data();
 }
 
 void xDeviceRelayService::OnNewProxyConnection(xSocket && NativeHandle) {
-    Todo("require proxy connection");
+    X_DEBUG_PRINTF("");
+    auto Conn = ProxyConnectionManager.AcceptConnection(std::move(NativeHandle), this);
+    if (!Conn) {
+        X_DEBUG_PRINTF("");
+        return;
+    }
+    Conn->SetType_ProxyClient();
 }
 
 void xDeviceRelayService::OnConnected(xTcpConnection * TcpConnectionPtr) {
@@ -108,6 +121,7 @@ size_t xDeviceRelayService::OnData(xTcpConnection * TcpConnectionPtr, ubyte * Da
             } else {
                 assert(Conn->IsType_ProxyClient());
                 if (!OnProxyPacket(static_cast<xRD_ProxyConnection *>(Conn), Header, PayloadPtr, PayloadSize)) { /* packet error */
+                    X_DEBUG_PRINTF("?? ");
                     return InvalidDataSize;
                 }
             }
@@ -116,35 +130,6 @@ size_t xDeviceRelayService::OnData(xTcpConnection * TcpConnectionPtr, ubyte * Da
         RemainSize -= PacketSize;
     }
     return DataSize - RemainSize;
-}
-
-bool xDeviceRelayService::OnCtrlPacket(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
-    X_DEBUG_PRINTF("Cmd=%" PRIx64 ", Request body: \n%s", Header.CommandId, HexShow(Payload, PayloadSize).c_str());
-    switch (Header.CommandId) {
-        case Cmd_Terminal_RL_InitCtrlStream: {
-            return OnTerminalInitCtrlStream(Conn, Header, Payload, PayloadSize);
-        }
-    }
-    return false;
-}
-
-bool xDeviceRelayService::OnDataPacket(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
-    X_DEBUG_PRINTF("Cmd=%" PRIx64 ", Request body: \n%s", Header.CommandId, HexShow(Payload, PayloadSize).c_str());
-    switch (Header.CommandId) {
-        case Cmd_Terminal_RL_InitDataStream: {
-            return OnTerminalInitDataStream(Conn, Header, Payload, PayloadSize);
-        }
-        case Cmd_Terminal_RL_NotifyConnectionState: {
-            return OnTerminalTargetConnectionUpdate(Conn, Header, Payload, PayloadSize);
-        }
-        default:
-            break;
-    }
-    return false;
-}
-
-bool xDeviceRelayService::OnProxyPacket(xRD_ProxyConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
-    return true;
 }
 
 void xDeviceRelayService::RemoveDeviceFromConnection(xRD_DeviceConnection * Conn) {
@@ -157,8 +142,8 @@ void xDeviceRelayService::RemoveDeviceFromConnection(xRD_DeviceConnection * Conn
 }
 
 void xDeviceRelayService::RemoveDevice(xDevice * Device) {
-    if (Device->ControlConnection) {
-        DeviceConnectionManager.DeferReleaseConnection(Steal(Device->ControlConnection));
+    if (Device->CtrlConnection) {
+        DeviceConnectionManager.DeferReleaseConnection(Steal(Device->CtrlConnection));
     }
     if (Device->DataConnection) {
         DeviceConnectionManager.DeferReleaseConnection(Steal(Device->DataConnection));
@@ -179,65 +164,6 @@ bool xDeviceRelayService::PostConnectionData(
         PayloadPtr       += PayloadSize;
         TotalPayloadSize -= PayloadSize;
     }
-
-    return false;
-}
-
-bool xDeviceRelayService::OnTerminalInitCtrlStream(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
-    auto S = xInitCtrlStream();
-    if (!S.Deserialize(Payload, PayloadSize)) {
-        return false;
-    }
-    // TODO: check
-
-    auto R      = xInitCtrlStreamResp();
-    R.DeviceId  = 1024;
-    R.CtrlId    = Conn->ConnectionId;
-    R.DeviceKey = "hello world!";
-    Conn->PostPacket(Cmd_Terminal_RL_InitCtrlStreamResp, Header.RequestId, R);
-    DeviceConnectionManager.KeepAlive(Conn);
-    return true;
-}
-
-bool xDeviceRelayService::OnTerminalInitDataStream(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
-    auto S = xInitDataStream();
-    if (!S.Deserialize(Payload, PayloadSize)) {
-        return false;
-    }
-    auto CtrlConn = DeviceConnectionManager.GetConnectionById(S.CtrlId);
-    if (!CtrlConn) {
-        X_DEBUG_PRINTF("no ctrl id conn found");
-        return false;
-    }
-
-    auto R     = xInitDataStreamResp();
-    R.Accepted = true;
-
-    // accept data stream and move it to long idle list
-    Conn->PostPacket(Cmd_Terminal_RL_InitDataStreamResp, Header.RequestId, R);
-    DeviceConnectionManager.KeepAlive(Conn);
-
-    // do test:
-
-    auto baidu               = xNetAddress::Parse("183.2.172.42:80");
-    auto NC                  = xTR_CreateConnection();
-    NC.RelaySideConnectionId = 1024;
-    NC.TargetAddress         = baidu;
-    CtrlConn->PostPacket(Cmd_Terminal_RL_CreateConnection, 0, NC);
-
-    return true;
-}
-
-bool xDeviceRelayService::OnTerminalTargetConnectionUpdate(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
-    auto S = xTR_ConnectionStateNotify();
-    if (!S.Deserialize(Payload, PayloadSize)) {
-        return false;
-    }
-
-    X_DEBUG_PRINTF(
-        "New ConnectionState: %s terminalSideCid=%" PRIx32 ", relaySideCid=%" PRIx64 ", tR=%" PRIu64 ", tW=%" PRIu64 "",
-        xTR_ConnectionStateNotify::GetStateName(S.NewState), S.TerminalSideConnectionId, S.RelaySideConnectionId, S.TotalReadBytes, S.TotalWrittenBytes
-    );
 
     return true;
 }

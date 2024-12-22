@@ -8,10 +8,10 @@ struct xDevice : xListNode {
     static constexpr uint32_t FLAG_BOUND  = 0x01;
     static constexpr uint32_t FLAG_DELETE = 0x80;
 
-    xIndexId               DeviceRuntimeId   = 0;
-    uint32_t               Flags             = FLAG_INIT;
-    xRD_DeviceConnection * ControlConnection = 0;
-    xRD_DeviceConnection * DataConnection    = 0;
+    xIndexId               DeviceRuntimeId = 0;
+    uint32_t               Flags           = FLAG_INIT;
+    xRD_DeviceConnection * CtrlConnection  = 0;
+    xRD_DeviceConnection * DataConnection  = 0;
 
     void MarkDelete() {
         Flags |= FLAG_DELETE;
@@ -50,7 +50,8 @@ protected:
         DC->MarkDelete();
         DeviceKillList.GrabTail(*DC);
     }
-    void DestroyDevice(xDevice * Context);
+    void DestroyDevice(xDevice * DC);
+    void ReportDeviceState(xDevice * Device);
 
 private:
     xTicker                  Ticker;

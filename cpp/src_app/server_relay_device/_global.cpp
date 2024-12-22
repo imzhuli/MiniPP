@@ -1,4 +1,4 @@
-#include "./global.hpp"
+#include "./_global.hpp"
 
 xIoContext  GlobalIoContext;
 xNetAddress BindControlAddress;
@@ -9,3 +9,4 @@ xRD_DeviceConnectionManager DeviceConnectionManager;
 xDeviceManager              DeviceManager;
 xRD_ProxyConnectionManager  ProxyConnectionManager;
 xDeviceRelayService         DeviceRelayService;
+xRelayConnectionManager     RelayConnectionManager;

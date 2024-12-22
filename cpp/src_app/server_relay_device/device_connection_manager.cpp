@@ -42,27 +42,29 @@ void xRD_DeviceConnectionManager::RemoveIdleConnections() {
 }
 
 xRD_DeviceConnection * xRD_DeviceConnectionManager::AcceptConnection(xSocket && NativeHandle, xTcpConnection::iListener * Listener) {
-    auto C = CreateConnection();
-    if (!C->Init(ICP, std::move(NativeHandle), Listener)) {
-        X_DEBUG_PRINTF("Failed to accept connection");
-        DestroyConnection(C);
-    }
-    X_DEBUG_PRINTF(" ConnectionId=%" PRIx64 "", C->ConnectionId);
-    return C;
+    return CreateConnection(std::move(NativeHandle), Listener);
 }
 
-xRD_DeviceConnection * xRD_DeviceConnectionManager::CreateConnection() {
+xRD_DeviceConnection * xRD_DeviceConnectionManager::CreateConnection(xSocket && NativeHandle, xTcpConnection::iListener * Listener) {
     auto C = new (std::nothrow) xRD_DeviceConnection();
     if (!C) {
+        XelCloseSocket(NativeHandle);
         return nullptr;
     }
     auto Id = ConnectionIdManager.Acquire(C);
     if (!Id) {
         delete C;
+        XelCloseSocket(NativeHandle);
         return nullptr;
     }
+    if (!C->Init(ICP, std::move(NativeHandle), Listener)) {
+        ConnectionIdManager.Release(Id);
+        delete C;
+        return nullptr;
+    }
+
     C->ConnectionId   = Id;
-    C->IdleTimestamMS = Ticker;
+    C->IdleTimestamMS = Ticker();
     NewConnectionList.AddTail(*C);
     return C;
 }
@@ -79,7 +81,7 @@ void xRD_DeviceConnectionManager::KeepAlive(xRD_DeviceConnection * Conn) {
     if (Conn->HasMark_Delete()) {
         return;
     }
-    Conn->IdleTimestamMS = Ticker;
+    Conn->IdleTimestamMS = Ticker();
     IdleConnectionList.GrabTail(*Conn);
 }
 
@@ -94,6 +96,7 @@ void xRD_DeviceConnectionManager::DestroyConnection(xRD_DeviceConnection * Conn)
 void xRD_DeviceConnectionManager::FreeAllConnections() {
     KillConnectionList.GrabListTail(NewConnectionList);
     KillConnectionList.GrabListTail(IdleConnectionList);
+    KillConnectionList.GrabListTail(SlowKillConnectionList);
     while (auto PC = KillConnectionList.PopHead()) {
         DestroyConnection(PC);
     }
