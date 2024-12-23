@@ -10,10 +10,8 @@ include_directories(
 
 # local libs
 aux_source_directory("./pp_protocol"                        SRC)
-aux_source_directory("./pp_protocol/app_status"             SRC)
 aux_source_directory("./pp_protocol/backend"                SRC)
 aux_source_directory("./pp_protocol/config_center"          SRC)
-aux_source_directory("./pp_protocol/common"                 SRC)
 aux_source_directory("./pp_protocol/device_relay"           SRC)
 aux_source_directory("./pp_protocol/dns_server"             SRC)
 aux_source_directory("./pp_protocol/geo_server"             SRC)
