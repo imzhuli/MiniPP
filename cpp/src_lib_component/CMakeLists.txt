@@ -16,7 +16,6 @@ aux_source_directory("./pp_component/client_entry"   SRC)
 
 
 aux_source_directory("./ppc_common/"   SRC)
-aux_source_directory("./ppc_geo/"      SRC)
 
 add_library(${libname} ${SRC})
 target_compile_definitions(${libname} PRIVATE X_OPTION_STATIC)

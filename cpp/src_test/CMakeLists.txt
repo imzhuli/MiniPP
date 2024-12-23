@@ -49,7 +49,6 @@ endfunction()
 build_app(cpp)
 build_app(ka_client)
 build_app(ka_server)
-build_app(load_region_Csv)
 build_app(pa_embedded_client)
 build_app(udp_echo)
 
