@@ -12,7 +12,7 @@ public:
     }
 
 public:
-    uint64_t         DeviceSideConnectionId;
+    uint32_t         DeviceSideConnectionId;
     uint64_t         RelaySideConnectionId;
     std::string_view PayloadView;
 

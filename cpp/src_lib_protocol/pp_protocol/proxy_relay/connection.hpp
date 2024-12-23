@@ -76,14 +76,14 @@ public:
 class xPR_PushData : public xBinaryMessage {
 public:
     void SerializeMembers() override {
-        W(ProxySideConnectionId, RelaySideConnectionId, DataView);
+        W(ProxySideConnectionId, RelaySideConnectionId, PayloadView);
     }
     void DeserializeMembers() override {
-        R(ProxySideConnectionId, RelaySideConnectionId, DataView);
+        R(ProxySideConnectionId, RelaySideConnectionId, PayloadView);
     }
 
 public:
     uint32_t         ProxySideConnectionId;
     uint64_t         RelaySideConnectionId;
-    std::string_view DataView;
+    std::string_view PayloadView;
 };

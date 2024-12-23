@@ -21,6 +21,9 @@ bool xDeviceRelayService::OnDataPacket(xRD_DeviceConnection * Conn, xPacketHeade
         case Cmd_Terminal_RL_NotifyConnectionState: {
             return OnTerminalTargetConnectionUpdate(Conn, Header, Payload, PayloadSize);
         }
+        case Cmd_Terminal_RL_PostData: {
+            return OnTerminalPostData(Conn, Header, Payload, PayloadSize);
+        }
         default:
             break;
     }
@@ -75,7 +78,7 @@ bool xDeviceRelayService::OnTerminalTargetConnectionUpdate(xRD_DeviceConnection 
         xTR_ConnectionStateNotify::GetStateName(S.NewState), S.DeviceSideConnectionId, S.RelaySideConnectionId, S.TotalReadBytes, S.TotalWrittenBytes
     );
 
-    auto CR = RelayConnectionManager.Get(S.RelaySideConnectionId);
+    auto CR = RelayConnectionManager.GetConnectionById(S.RelaySideConnectionId);
     if (!CR || CR->RelaySideConnectionId != S.RelaySideConnectionId) {
         X_DEBUG_PRINTF("Connection not found: Id=%" PRIx64 "", S.RelaySideConnectionId);
         return true;
@@ -108,5 +111,33 @@ bool xDeviceRelayService::OnTerminalTargetConnectionUpdate(xRD_DeviceConnection 
         return true;
     }
     PAConn->PostPacket(Cmd_PA_RL_NotifyConnectionState, 0, F);
+    return true;
+}
+
+bool xDeviceRelayService::OnTerminalPostData(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
+    auto S = xTR_PostData();
+    if (!S.Deserialize(Payload, PayloadSize)) {
+        return false;
+    }
+
+    X_DEBUG_PRINTF("terminalSideCid=%" PRIx32 ", relaySideCid=%" PRIx64 ", size=%zi", S.DeviceSideConnectionId, S.RelaySideConnectionId, S.PayloadView.size());
+    auto CR = RelayConnectionManager.GetConnectionById(S.RelaySideConnectionId);
+    if (!CR || CR->RelaySideConnectionId != S.RelaySideConnectionId) {
+        X_DEBUG_PRINTF("Connection not found: Id=%" PRIx64 "", S.RelaySideConnectionId);
+        return true;
+    }
+
+    auto PAConn = ProxyConnectionManager.GetConnectionById(CR->ProxyId);
+    if (!PAConn) {
+        X_DEBUG_PRINTF("proxy not found");
+        return true;
+    }
+
+    auto Push                  = xPR_PushData();
+    Push.RelaySideConnectionId = CR->RelaySideConnectionId;
+    Push.ProxySideConnectionId = CR->ProxySideConnectionId;
+    Push.PayloadView           = S.PayloadView;
+    PAConn->PostPacket(Cmd_PA_RL_PostData, 0, Push);
+
     return true;
 }

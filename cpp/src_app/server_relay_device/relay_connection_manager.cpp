@@ -23,7 +23,7 @@ auto xRelayConnectionManager::Create() -> xRelayConnectionContext * {
     return &Ref;
 }
 
-auto xRelayConnectionManager::Get(uint64_t RelaySideConnectionId) -> xRelayConnectionContext * {
+auto xRelayConnectionManager::GetConnectionById(uint64_t RelaySideConnectionId) -> xRelayConnectionContext * {
     return ContextPool.CheckAndGet(RelaySideConnectionId);
 }
 

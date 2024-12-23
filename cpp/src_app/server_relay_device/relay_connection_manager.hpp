@@ -17,7 +17,7 @@ public:
     void Tick(uint64_t NowMS);
 
     auto Create() -> xRelayConnectionContext *;
-    auto Get(uint64_t RelaySideConnectionId) -> xRelayConnectionContext *;
+    auto GetConnectionById(uint64_t RelaySideConnectionId) -> xRelayConnectionContext *;
     void Destroy(xRelayConnectionContext * RCC);
 
 private:

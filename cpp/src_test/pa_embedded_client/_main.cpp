@@ -15,6 +15,8 @@ auto TargetAddress6        = xNetAddress::Parse("[240e:ff:e020:9ae:0:ff:b014:8e8
 auto PushPayload           = std::string("GET / HTTP/1.1\r\n\r\n");
 auto TargetDeviceId        = uint64_t(0);
 auto ProxySideConnectionId = uint64_t(12345);
+auto RelaySideConnectionId = uint64_t(0);
+auto CloseTimer            = xTimer();
 
 auto RF  = xRunState();
 auto IC  = xIoContext();
@@ -44,6 +46,7 @@ struct xPA_Listener : xTcpConnection::iListener {
         TcpConnectionPtr->PostData(Buffer, RSize);
 
         Connected = true;
+        CloseTimer.Tag();
     }
 
     void OnPeerClose(xTcpConnection * TcpConnectionPtr) override {
@@ -70,6 +73,18 @@ struct xPA_Listener : xTcpConnection::iListener {
         }
         if (!HeaderPushed) {
             Pass();
+        }
+        if (!ConnectionClosed && CloseTimer.TestAndTag(2s)) {
+            X_DEBUG_PRINTF("try to close connection");
+            auto R                  = xPR_DestroyConnection();
+            R.RelaySideConnectionId = RelaySideConnectionId;
+            R.ProxySideConnectionId = ProxySideConnectionId;
+
+            ubyte Buffer[MaxPacketSize];
+            auto  RSize = WritePacket(Cmd_PA_RL_DestroyConnection, 0, Buffer, R);
+            Connection.PostData(Buffer, RSize);
+
+            ConnectionClosed = true;
         }
     }
 
@@ -107,6 +122,9 @@ struct xPA_Listener : xTcpConnection::iListener {
             case Cmd_PA_RL_NotifyConnectionState:
                 X_DEBUG_PRINTF("Cmd_PA_RL_NotifyConnectionState");
                 return OnConnectionNotify(Conn, Header, Payload, PayloadSize);
+            case Cmd_PA_RL_PostData:
+                X_DEBUG_PRINTF("Cmd_PA_RL_PostData");
+                return OnConnectionData(Conn, Header, Payload, PayloadSize);
             default:
                 X_DEBUG_PRINTF("Unrecognized CommandId=%" PRIx32 "", Header.CommandId);
                 break;
@@ -121,23 +139,37 @@ struct xPA_Listener : xTcpConnection::iListener {
             return false;
         }
         X_DEBUG_PRINTF("NewState=%" PRIi32 ", PSideId=%" PRIx64 ", RSideId=%" PRIx64 "", R.NewState, R.ProxySideConnectionId, R.RelaySideConnectionId);
-        if (R.NewState == xPR_ConnectionStateNotify::STATE_CLOSED) {
+        if (R.NewState == xPR_ConnectionStateNotify::STATE_ESTABLISHED) {
             X_DEBUG_PRINTF("Connection established");
 
             auto Push                  = xPR_PushData();
             Push.ProxySideConnectionId = R.ProxySideConnectionId;
             Push.RelaySideConnectionId = R.RelaySideConnectionId;
-            Push.DataView              = Request;
+            Push.PayloadView           = Request;
 
             PostMessage(Cmd_PA_RL_PostData, 0, Push);
-            HeaderPushed = true;
+
+            RelaySideConnectionId = R.RelaySideConnectionId;
+            HeaderPushed          = true;
             return true;
         } else if (R.NewState == xPR_ConnectionStateNotify::STATE_CLOSED) {
+            X_DEBUG_PRINTF("Connection closed");
+            RF.Stop();
             return true;
         } else if (R.NewState == xPR_ConnectionStateNotify::STATE_UPDATE_TRANSFER) {
             return true;
         }
         return false;
+    }
+
+    bool OnConnectionData(xTcpConnection * Conn, const xPacketHeader & Header, ubyte * Payload, size_t PayloadSize) {
+        auto R = xPR_PushData();
+        if (!R.Deserialize(Payload, PayloadSize)) {
+            X_DEBUG_PRINTF("invalid protocol");
+            return false;
+        }
+        X_DEBUG_PRINTF("Data from connection:\n%s", HexShow(R.PayloadView).c_str());
+        return true;
     }
 
     void PostMessage(uint32_t CmdId, uint64_t RequestId, xBinaryMessage & M) {
@@ -157,6 +189,7 @@ struct xPA_Listener : xTcpConnection::iListener {
     bool Connected         = false;
     bool RequireConnection = false;
     bool HeaderPushed      = false;
+    bool ConnectionClosed  = false;
 };
 
 int main(int argc, char ** argv) {
