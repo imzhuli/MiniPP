@@ -5,12 +5,12 @@
 
 #include <algorithm>
 #include <pp_protocol/command.hpp>
+#include <pp_protocol/device_relay/connection.hpp>
+#include <pp_protocol/device_relay/init_ctrl_stream.hpp>
+#include <pp_protocol/device_relay/init_data_stream.hpp>
+#include <pp_protocol/device_relay/post_data.hpp>
 #include <pp_protocol/proxy_relay/challenge.hpp>
 #include <pp_protocol/proxy_relay/connection.hpp>
-#include <pp_protocol/relay_terminal/connection.hpp>
-#include <pp_protocol/relay_terminal/init_ctrl_stream.hpp>
-#include <pp_protocol/relay_terminal/init_data_stream.hpp>
-#include <pp_protocol/relay_terminal/post_data.hpp>
 
 bool xDeviceRelayService::OnDataPacket(xRD_DeviceConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
     X_DEBUG_PRINTF("Cmd=%" PRIx64 ", Request body: \n%s", Header.CommandId, HexShow(Payload, PayloadSize).c_str());

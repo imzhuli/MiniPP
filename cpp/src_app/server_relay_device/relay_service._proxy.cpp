@@ -5,10 +5,10 @@
 
 #include <algorithm>
 #include <pp_protocol/command.hpp>
+#include <pp_protocol/device_relay/connection.hpp>
+#include <pp_protocol/device_relay/post_data.hpp>
 #include <pp_protocol/proxy_relay/challenge.hpp>
 #include <pp_protocol/proxy_relay/connection.hpp>
-#include <pp_protocol/relay_terminal/connection.hpp>
-#include <pp_protocol/relay_terminal/post_data.hpp>
 
 bool xDeviceRelayService::OnProxyPacket(xRD_ProxyConnection * Conn, xPacketHeader & Header, const ubyte * Payload, size_t PayloadSize) {
     switch (Header.CommandId) {

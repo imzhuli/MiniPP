@@ -2,7 +2,7 @@
 #include "./_global.hpp"
 #include "./relay_service.hpp"
 
-#include <pp_protocol/relay_terminal/init_ctrl_stream.hpp>
+#include <pp_protocol/device_relay/init_ctrl_stream.hpp>
 
 int main(int argc, char ** argv) {
 
