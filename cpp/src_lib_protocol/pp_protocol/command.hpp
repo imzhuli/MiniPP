@@ -92,10 +92,11 @@ static constexpr const xPacketCommandId Cmd_Terminal_RL_PostData              = 
 static constexpr const xPacketCommandId Cmd_Terminal_RL_ProxyClientNotify     = Cmd_Terminal_RL_Base + 0x09;
 static constexpr const xPacketCommandId Cmd_Terminal_RL_ForceDetroyConnection = Cmd_Terminal_RL_Base + 0x0A;
 
-static constexpr const xPacketCommandId Cmd_Terminal_RL_CreateUdpChannel   = Cmd_Terminal_RL_Base + 0x10;
-static constexpr const xPacketCommandId Cmd_Terminal_RL_CloseUdpChannel    = Cmd_Terminal_RL_Base + 0x11;
-static constexpr const xPacketCommandId Cmd_Terminal_RL_PushUdpChannelData = Cmd_Terminal_RL_Base + 0x11;
-static constexpr const xPacketCommandId Cmd_Terminal_RL_PostUdpChannelData = Cmd_Terminal_RL_Base + 0x12;
+static constexpr const xPacketCommandId Cmd_Terminal_RL_CreateUdpChannel     = Cmd_Terminal_RL_Base + 0x10;
+static constexpr const xPacketCommandId Cmd_Terminal_RL_CloseUdpChannel      = Cmd_Terminal_RL_Base + 0x11;
+static constexpr const xPacketCommandId Cmd_Terminal_RL_PostUdpChannelData   = Cmd_Terminal_RL_Base + 0x12;
+static constexpr const xPacketCommandId Cmd_Terminal_RL_CreateUdpChannelResp = Cmd_Terminal_RL_Base + 0x13;
+static constexpr const xPacketCommandId Cmd_Terminal_RL_UdpChannelKeepAlive  = Cmd_Terminal_RL_Base + 0x14;
 
 static constexpr const xPacketCommandId Cmd_Terminal_RL_RequireLog = Cmd_Terminal_RL_Base + 0x20;
 static constexpr const xPacketCommandId Cmd_Terminal_RL_PushLog    = Cmd_Terminal_RL_Base + 0x21;

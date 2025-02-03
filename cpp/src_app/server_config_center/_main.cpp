@@ -8,30 +8,28 @@
 
 int main(int argc, char ** argv) {
 
-	auto CL = xCommandLine(
-		argc, argv,
-		{ {
-			'c',
-			nullptr,
-			"config_file",
-			true,
-		} }
-	);
+    auto CL = xCommandLine(
+        argc, argv,
+        {
+            { 'c', nullptr, "config_file", true },
+            { 'd', nullptr, "dispatcher", false },
+        }
+    );
 
-	auto ConfigFileOpt = CL["config_file"];
-	RuntimeAssert(ConfigFileOpt());
+    auto ConfigFileOpt = CL["config_file"];
+    RuntimeAssert(ConfigFileOpt());
 
-	LoadConfig(ConfigFileOpt->c_str());
+    LoadConfig(ConfigFileOpt->c_str());
 
-	RuntimeAssert(GlobalIoContext.Init());
-	RuntimeAssert(InitDeviceChallengeManager());
+    RuntimeAssert(GlobalIoContext.Init());
+    RuntimeAssert(InitDeviceChallengeManager());
 
-	while (true) {
-		GlobalIoContext.LoopOnce();
-	}
+    while (true) {
+        GlobalIoContext.LoopOnce();
+    }
 
-	CleanDeviceChallengeManager();
-	GlobalIoContext.Clean();
+    CleanDeviceChallengeManager();
+    GlobalIoContext.Clean();
 
-	return 0;
+    return 0;
 }
