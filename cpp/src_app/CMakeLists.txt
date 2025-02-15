@@ -55,6 +55,7 @@ endfunction()
 set(target_list
 	server_audit_colloector
 	server_config_center
+	server_config_center_root
 	server_dns
 	server_dns_dispatcher
 	server_proxy_access

@@ -13,7 +13,7 @@ bool LoadConfig(const char * filename) {
     // LoadForced Relay
     auto Loader = xel::xConfigLoader(filename);
 
-    Loader.Require(BindControlAddress, "BindControlAddress");
+    Loader.Require(BindCtrlAddress, "BindCtrlAddress");
     Loader.Require(BindDataAddress, "BindDataAddress");
     Loader.Require(BindProxyAddress, "BindProxyAddress");
 

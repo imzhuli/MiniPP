@@ -23,7 +23,7 @@ int main(int argc, char ** argv) {
     RuntimeAssert(GlobalIoContext.Init());
     RuntimeAssert(DeviceManager.Init(MaxDeviceCount));
     RuntimeAssert(DeviceConnectionManager.Init(&GlobalIoContext, MaxDeviceCount * 2));
-    RuntimeAssert(DeviceRelayService.Init(&GlobalIoContext, BindControlAddress, BindDataAddress, BindProxyAddress));
+    RuntimeAssert(DeviceRelayService.Init(&GlobalIoContext, BindCtrlAddress, BindDataAddress, BindProxyAddress));
     RuntimeAssert(ProxyConnectionManager.Init(&GlobalIoContext, MaxProxyCount));
     RuntimeAssert(RelayConnectionManager.Init(MaxRelayConnectionCount));
 

@@ -1,7 +1,7 @@
 #include "./_global.hpp"
 
 xIoContext  GlobalIoContext;
-xNetAddress BindControlAddress;
+xNetAddress BindCtrlAddress;
 xNetAddress BindDataAddress;
 xNetAddress BindProxyAddress;
 

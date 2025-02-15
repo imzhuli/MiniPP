@@ -6,7 +6,7 @@
 #include <pp_common/_.hpp>
 
 extern xIoContext  GlobalIoContext;
-extern xNetAddress BindControlAddress;
+extern xNetAddress BindCtrlAddress;
 extern xNetAddress BindDataAddress;
 extern xNetAddress BindProxyAddress;
 
