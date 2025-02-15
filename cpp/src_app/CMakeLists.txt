@@ -58,9 +58,9 @@ set(target_list
 	server_dns
 	server_dns_dispatcher
 	server_proxy_access
-	server_state
 	server_relay_third
 	server_relay_device
+	server_user_manager
 	)
 
 foreach(item IN LISTS target_list)
